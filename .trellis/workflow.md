@@ -163,6 +163,16 @@ Phase 3: Finish  → verify, update spec, commit, and wrap up
 - `implement.jsonl` / `check.jsonl` — spec and research manifests for sub-agent context. They do not replace `implement.md`.
 - Lightweight tasks may be PRD-only. Complex tasks must have `prd.md`, `design.md`, and `implement.md` before `task.py start`.
 
+**Local structure contract** (when `task_structure_validation: true`): declare `task.json.meta.planning_mode` as `lightweight` or `complex` using existing `create --meta` / `set-meta` commands. Missing classification is an error, including for existing tasks at their next start/archive.
+
+| Document | Required level-two sections (exactly once, with content) |
+| --- | --- |
+| `prd.md` (all tasks) | `Goal`, `Requirements`, `Acceptance Criteria` |
+| `design.md` (complex; checked if present for lightweight) | `Scope`, `Contracts`, `Data Flow`, `Tradeoffs`, `Rollout and Rollback` |
+| `implement.md` (complex; checked if present for lightweight) | `Ordered Steps`, `Validation`, `Review Gates`, `Rollback Points` |
+
+Code-fenced headings and HTML comments do not satisfy sections. Search [cross-task decisions](./decisions/README.md) during planning and register relevant record paths in `relatedFiles`; keep ordinary task-local choices in `design.md`. Start/archive reject structural errors before state changes; this does not establish user approval, appropriate classification or sound reasoning. Historical archived task documents are not migrated.
+
 ### Parent / Child Task Trees
 
 Use a parent task when one user request contains several independently verifiable deliverables. The parent task owns the source requirement set, the task map, cross-child acceptance criteria, and final integration review; it normally should not be the implementation target unless it also has direct work.
@@ -194,6 +204,7 @@ Load `trellis-brainstorm`; stay in planning.
 Lightweight: `prd.md` can be enough. Complex: finish `prd.md`, `design.md`, and `implement.md`; ask for review before `task.py start`.
 Multi-deliverable scope: consider a parent task plus independently verifiable child tasks; dependencies must be written in child artifacts, not implied by tree position.
 Sub-agent mode: curate `implement.jsonl` and `check.jsonl` as spec/research manifests before start.
+Local checks: declare `meta.planning_mode`, meet the planning section contract, search decisions and register relevant `relatedFiles` per `.trellis/decisions/README.md`. Structural checks do not replace user review.
 [/workflow-state:planning]
 
 <!-- Per-turn breadcrumb: shown throughout Phase 1 when codex.dispatch_mode=inline.
@@ -207,6 +218,7 @@ Load `trellis-brainstorm`; stay in planning.
 Lightweight: `prd.md` can be enough. Complex: finish `prd.md`, `design.md`, and `implement.md`; ask for review before `task.py start`.
 Multi-deliverable scope: consider a parent task plus independently verifiable child tasks; dependencies must be written in child artifacts, not implied by tree position.
 Inline mode: skip jsonl curation; Phase 2 reads artifacts/specs via `trellis-before-dev`.
+Local checks: declare `meta.planning_mode`, meet the planning section contract, search decisions and register relevant `relatedFiles` per `.trellis/decisions/README.md`. Structural checks do not replace user review.
 [/workflow-state:planning-inline]
 
 ### Phase 2: Execute
@@ -227,6 +239,7 @@ Tools: `trellis-implement` / `trellis-research` are sub-agent types only (Task/A
 Flow: `trellis-implement` -> `trellis-check` -> `trellis-update-spec` -> commit (Phase 3.4) -> `/trellis:finish-work`.
 Main-session default: dispatch implement/check sub-agents. Sub-agent self-exemption: if already running as `trellis-implement`, do NOT spawn another `trellis-implement` or `trellis-check`; if already running as `trellis-check`, do NOT spawn another `trellis-check` or `trellis-implement`. Dispatch is main session only.
 Dispatch prompt starts with `Active task: <task path from task.py current>`. Read context: jsonl entries -> `prd.md` -> `design.md if present` -> `implement.md if present`.
+Keep `meta.planning_mode`, planning sections and decision `relatedFiles` current per `.trellis/decisions/README.md`. When enabled, start/archive reject related structure errors before mutation; skip-context/branch flags do not bypass these checks. Approval and delivery remain separate facts.
 [/workflow-state:in_progress]
 
 <!-- Per-turn breadcrumb: shown while status='in_progress' when
@@ -238,6 +251,7 @@ Dispatch prompt starts with `Active task: <task path from task.py current>`. Rea
 Flow: `trellis-before-dev` -> edit -> `trellis-check` -> validation -> `trellis-update-spec` -> commit (Phase 3.4) -> `/trellis:finish-work`.
 Do not dispatch implement/check sub-agents in inline mode.
 Read context: `prd.md` -> `design.md if present` -> `implement.md if present`, plus relevant spec/research loaded by skills.
+Keep `meta.planning_mode`, planning sections and decision `relatedFiles` current per `.trellis/decisions/README.md`. When enabled, start/archive reject related structure errors before mutation; skip-context/branch flags do not bypass these checks. Approval and delivery remain separate facts.
 [/workflow-state:in_progress-inline]
 
 ### Phase 3: Finish
@@ -339,6 +353,8 @@ The brainstorm skill will guide you to:
 - Split large scopes into a parent task plus child tasks when the deliverables can be verified independently
 - Keep `prd.md` focused on requirements and acceptance criteria
 - For complex tasks, produce `design.md` and `implement.md` before implementation starts
+- Declare `meta.planning_mode`; follow the local structure contract above for the required documents and exact headings.
+- Search [cross-task decisions](./decisions/README.md), inspect relevant successor chains, and register used/created decision paths in `relatedFiles` without duplicating their full reasoning.
 
 When considering a parent/child split:
 - Use a parent task when one request contains several independently verifiable deliverables.

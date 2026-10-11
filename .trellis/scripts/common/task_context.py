@@ -31,6 +31,7 @@ from .io import read_json
 from .log import Colors, colored
 from .paths import DIR_ARCHIVE, DIR_TASKS, DIR_WORKFLOW, FILE_TASK_JSON, get_repo_root
 from .task_utils import resolve_task_dir
+from .task_validation import validate_task_structure
 
 # Extensions that look like code rather than spec/research docs. Entries with
 # one of these extensions outside .trellis/spec/, docs/docs-site, or the
@@ -167,12 +168,16 @@ def cmd_validate(args: argparse.Namespace) -> int:
     print(f"Target dir: {target_dir}")
     print()
 
+    structure_issues = validate_task_structure(repo_root, target_dir)
+    for issue in structure_issues:
+        print(issue)
+
     # Warn (don't fail validation) when the recorded branch is stale — it
     # was likely already merged and deleted (#399 item 2).
     task_json_path = target_dir / FILE_TASK_JSON
     if task_json_path.is_file():
         task_data = read_json(task_json_path)
-        stored_branch = task_data.get("branch") if task_data else None
+        stored_branch = task_data.get("branch") if isinstance(task_data, dict) else None
         if stored_branch and not branch_exists_locally(stored_branch, repo_root):
             print(
                 colored(
@@ -183,7 +188,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             )
             print()
 
-    total_errors = 0
+    total_errors = sum(issue.severity == "error" for issue in structure_issues)
     for jsonl_name in ["implement.jsonl", "check.jsonl"]:
         jsonl_file = target_dir / jsonl_name
         errors = _validate_jsonl(jsonl_file, repo_root, target_dir)

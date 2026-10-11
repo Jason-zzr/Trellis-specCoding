@@ -54,6 +54,7 @@ from common.io import (
     write_json,
 )
 from common.task_utils import resolve_task_dir, run_task_hooks
+from common.task_validation import validate_task_structure
 from common.tasks import iter_active_tasks, children_progress
 
 # Import command handlers from split modules (also re-exports for plan.py compatibility)
@@ -189,6 +190,12 @@ def cmd_start(args: argparse.Namespace) -> int:
     if not full_path.is_dir():
         print(colored(f"Error: Task not found: {task_input}", Colors.RED))
         print("Hint: Use task name (e.g., 'my-task') or full path (e.g., '.trellis/tasks/01-31-my-task')")
+        return 1
+
+    structure_issues = validate_task_structure(repo_root, full_path)
+    for issue in structure_issues:
+        print(issue, file=sys.stderr)
+    if any(issue.severity == "error" for issue in structure_issues):
         return 1
 
     # Context-manifest gate (#573): a seeded-but-uncurated implement/check

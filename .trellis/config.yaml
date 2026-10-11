@@ -3,6 +3,10 @@
 #
 # All values have sensible defaults. Only override what you need.
 
+# Reject task planning/decision structure errors before start or archive.
+# Local opt-in only; see decisions/README.md and workflow.md.
+task_structure_validation: true
+
 #-------------------------------------------------------------------------------
 # Session Recording
 #-------------------------------------------------------------------------------

@@ -2836,3 +2836,63 @@ Contracts added by task `07-22-script-qol-batch` (#394, #402, meta access):
   half-created directory. `task.py set-meta <dir> <key> <value>` sets/overwrites
   one key on an existing task via the same `resolve_task_dir()` path validation
   as other subcommands. Values are plain strings (no nesting/coercion).
+
+
+## Task Planning and Decision Structure Validation
+
+### 1. Scope / Trigger
+
+`common/task_validation.py` owns project-opt-in, read-only checks before task start/archive and in `task.py validate`. Its dogfood and product-template copies, plus the three command consumers, must remain byte-identical. Only this repository's configuration enables the checks; init/update and public configuration templates are unchanged.
+
+### 2. Signatures
+
+```python
+@dataclass(frozen=True)
+class ValidationIssue:
+    path: Path
+    line: int | None
+    message: str
+    hint: str
+    severity: Literal["error", "warning"] = "error"
+
+def validate_task_structure(repo_root: Path, task_dir: Path) -> list[ValidationIssue]: ...
+```
+
+Diagnostics are sorted by path, line, severity and message; string rendering includes location and a repair hint. Callers fail on errors, not warnings. The validator does not write files, session pointers, task relationships or Git state. It imports neither command module, avoiding a lifecycle import cycle.
+
+### 3. Contracts
+
+- `.trellis/config.yaml`: a single top-level `task_structure_validation: true` enables checks. Missing setting or explicit `false` disables them without scanning planning/decision materials. A missing file gets a distinct warning; unreadable files or invalid/duplicate declarations are errors. Only unquoted `true`/`false` are supported. Parse this item strictly while reusing the existing scalar interpretation; do not change the general config reader's tolerant behavior.
+- `task.json` is a readable JSON object; `meta.planning_mode` is explicitly `lightweight` or `complex`. `relatedFiles`, when present, is a string array. Neither missing design files nor old creation dates imply a lightweight exemption.
+- Exact planning heading and decision schema contracts live in [workflow.md](../../../workflow.md) and [decisions/README.md](../../../decisions/README.md). Sections must be unique and nonempty outside headings/comments/fence markers; fenced pseudo-headings do not define sections.
+- Decision filename stems are IDs. Strict JSON metadata carries only `status`, `source_task`, `reconsiders`. Register roots in `relatedFiles`; check the connected predecessor/successor set, not just the original records. Unrelated metadata failures warn about unknown associations. No decision roots means no decision scan.
+- Resolve source task directory names exactly across active/archive locations, check containment and JSON identity, and do not recursively validate historical planning documents. Resolve decision file containment against the decisions directory's real location, preserving a shared `.trellis` symlink.
+- A successor only supersedes its predecessor when accepted; do not write replacement state back to old records. Reject self-reference, cycles, unfinalized predecessors and multiple accepted direct successors. Snapshot validation cannot prove historical immutability or user consent.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Missing/false setting | Existing command behavior remains; no new material scan |
+| Invalid setting or task/planning structure | Error with path and repair hint |
+| Related decision invalid/missing/ambiguous | Error; unrelated metadata damage remains a warning |
+| `cmd_start` error | Return 1 before `set_active_task` or `_record_start_state`, including degraded mode |
+| `cmd_archive` error | Return 1 after target collision checks but before status, relationship, session, directory or index mutation; missing/broken JSON must not reach the old tolerant archive branch |
+| `cmd_validate` error | Combine with JSONL error count and return 1; retain existing branch warnings |
+| Context/branch skip options | Affect only their original checks, never structure validation |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a complex task declares its mode and provides all three complete planning documents; registered decisions include valid reconsideration links and exact active or archived sources.
+- Base: a lightweight task has only a complete PRD and no decision roots. Optional design/implementation documents, if present, must still satisfy their heading contracts.
+- Bad: a new accepted reconsideration is valid individually but conflicts with another accepted direct successor. Checking only the registered old record misses this conflict.
+
+### 6. Verification Boundary
+
+This change is delivered with static source/format checking and targeted twin comparison only. No test assets, executions, builds or installations are included. Static evidence is not proof of runtime start/archive behavior, semantic decision quality, task classification quality or user approval.
+
+### 7. Wrong vs Correct
+
+Wrong: call an `after_start`/`after_archive` hook and expect it to reject a transition, or default a missing `planning_mode` to lightweight.
+
+Correct: call `validate_task_structure` before the first mutation, return on any error, and require explicit classification. Keep create/edit/set-meta/finish available for recovery; do not introduce a skip-structure flag or batch-rewrite archived tasks.

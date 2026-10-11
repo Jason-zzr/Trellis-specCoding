@@ -1,0 +1,2 @@
+{"file":".trellis/spec/cli/backend/index.md","reason":"限定本次脚本及本地文档的静态核查标准；本任务禁止运行测试、构建或安装。"}
+{"file":".trellis/spec/cli/backend/workflow-state-contract.md","reason":"核对实际修改的 workflow 标记结构；此清单不授权审查子代理或扩展复核范围。"}

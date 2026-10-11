@@ -1,0 +1,28 @@
+{
+  "id": "decision-record-boundaries",
+  "name": "decision-record-boundaries",
+  "title": "Trellis 决策记录职责边界与升级规划",
+  "description": "跨任务决策记录与确定性结构校验已获实施批准；任务已激活，校验模块及 start/validate/archive 前置接入已实现并同步脚本模板，本地材料及启用已完成，AST/镜像/diff 检查通过；Ruff 有警告，未做运行验证，未归档或提交。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": "cli",
+  "priority": "P2",
+  "creator": "zzr-pi",
+  "assignee": "zzr-pi",
+  "createdAt": "2026-10-10",
+  "completedAt": null,
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "用户明确不再使用 GitNexus；已移除仓库强制规则及本任务对应前提，不增加替代工具或额外审批流程。",
+  "meta": {
+    "planning_mode": "complex"
+  }
+}

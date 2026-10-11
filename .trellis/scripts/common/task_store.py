@@ -60,6 +60,7 @@ from .safe_commit import (
     safe_archive_paths_to_add,
     safe_git_add,
 )
+from .task_validation import validate_task_structure
 from .task_utils import (
     archive_destination_for,
     archive_task_complete,
@@ -1309,6 +1310,12 @@ def cmd_archive(args: argparse.Namespace) -> int:
             Colors.RED), file=sys.stderr)
         print(f"Task remains at: {_repo_relative_path(task_dir, repo_root)}", file=sys.stderr)
         print("Move or rename the existing archived task, then retry.", file=sys.stderr)
+        return 1
+
+    structure_issues = validate_task_structure(repo_root, task_dir)
+    for issue in structure_issues:
+        print(issue, file=sys.stderr)
+    if any(issue.severity == "error" for issue in structure_issues):
         return 1
 
     dir_name = task_dir.name

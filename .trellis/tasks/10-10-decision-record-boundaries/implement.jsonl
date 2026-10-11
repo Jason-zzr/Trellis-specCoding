@@ -1,0 +1,2 @@
+{"file":".trellis/spec/cli/backend/index.md","reason":"定位 CLI 后端规范；脚本规范作为拟修改文件在实施前直接阅读，不放入注入清单。"}
+{"file":".trellis/spec/cli/backend/workflow-state-contract.md","reason":"本地 workflow breadcrumb 的阶段边界、标记和直接消费者契约；只改正文，不改平台 hooks。"}

@@ -1,0 +1,42 @@
+# Journal - zzr-pi (Part 1)
+
+> AI development session journal
+> Started: 2026-10-12
+
+---
+
+
+
+## Session 1: 本仓库 Pi 流程轻量化 v1
+<!-- trellis-session: v=2 fp=a7de7e27b66287f2 -->
+
+**Date**: 2026-10-12
+**Task**: 本仓库 Pi 流程轻量化 v1
+**Package**: cli
+**Branch**: `main`
+
+### Summary
+
+完成本仓库 Pi 轻量化试点并归档当前任务：小请求直达、主线程默认执行、合并澄清与复用批准、复用有效检查并只判断一次 spec 更新需求。
+
+### Main Changes
+
+- 完成约定的8个流程文件调整，以及交接文档和任务材料；工作提交为473c0e24。
+- 修复恢复流程的收尾门槛：实施完成、全范围有效证据满足验收、无未解决的阻塞失败；失败证据不能放行。
+- 共享入口的新规则限定为Pi试点；未修改公共模板、其他平台流程或本机安装配置。
+- 本任务直接在main完成，使用现有非PR归档选项；旧的决策记录任务和全部graphify-out产物保持不动；未推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `473c0e24` | refactor(workflow): streamline local Pi workflow |
+
+### Testing
+
+- [OK] 复用此前静态核查：Markdown结构、workflow标记及状态块、JSON/JSONL与引用、定向diff格式检查通过。
+- [OK] 未运行测试、构建或真实代理场景验证；结论仅覆盖流程文本及静态一致性。
+
+### Status
+
+[OK] **Completed**

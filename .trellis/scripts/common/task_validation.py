@@ -79,9 +79,6 @@ def _enabled(repo_root: Path, issues: list[ValidationIssue]) -> bool:
         if path.is_symlink():
             issues.append(ValidationIssue(path, None, "Configuration symlink is broken.",
                                           "Restore its target; an unreadable configuration is not disabled."))
-        else:
-            issues.append(ValidationIssue(path, None, "Configuration file missing; structure checks disabled.",
-                                          f"Create the file with {_SETTING}: true to enable checks.", "warning"))
         return False
     except (OSError, UnicodeError) as exc:
         issues.append(ValidationIssue(path, None, f"Cannot read configuration: {exc}",
@@ -101,11 +98,7 @@ def _enabled(repo_root: Path, issues: list[ValidationIssue]) -> bool:
             continue
         continuation = False
         key, separator, value = line.partition(":")
-        # Flow documents and merge keys can hide this setting from the simple parser.
-        if line.startswith(("{", "[", "<<:")):
-            issues.append(ValidationIssue(path, lineno, "Cannot determine validation setting from this YAML form.",
-                                          "Use explicit top-level key: value entries, without flow documents or merges."))
-            continue
+        # Unrelated YAML forms must not opt projects in or block them.
         if key.strip(" \"'?-") != _SETTING:
             continue
         declarations.append((lineno, value))

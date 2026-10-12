@@ -2862,7 +2862,7 @@ Diagnostics are sorted by path, line, severity and message; string rendering inc
 
 ### 3. Contracts
 
-- `.trellis/config.yaml`: a single top-level `task_structure_validation: true` enables checks. Missing setting or explicit `false` disables them without scanning planning/decision materials. A missing file gets a distinct warning; unreadable files or invalid/duplicate declarations are errors. Only unquoted `true`/`false` are supported. Parse this item strictly while reusing the existing scalar interpretation; do not change the general config reader's tolerant behavior.
+- `.trellis/config.yaml`: only an explicit top-level `task_structure_validation: true` scalar enables checks. A missing file/setting or explicit `false` disables them silently without scanning planning/decision materials. Broken symlinks, unreadable files and invalid/duplicate declarations of this setting remain errors. Only unquoted `true`/`false` are supported. This validator does not interpret flow documents or merges, or reject unrelated YAML entries; their handling remains with the existing configuration reader.
 - `task.json` is a readable JSON object; `meta.planning_mode` is explicitly `lightweight` or `complex`. `relatedFiles`, when present, is a string array. Neither missing design files nor old creation dates imply a lightweight exemption.
 - Exact planning heading and decision schema contracts live in [workflow.md](../../../workflow.md) and [decisions/README.md](../../../decisions/README.md). Sections must be unique and nonempty outside headings/comments/fence markers; fenced pseudo-headings do not define sections.
 - Decision filename stems are IDs. Strict JSON metadata carries only `status`, `source_task`, `reconsiders`. Register roots in `relatedFiles`; check the connected predecessor/successor set, not just the original records. Unrelated metadata failures warn about unknown associations. No decision roots means no decision scan.
@@ -2889,7 +2889,7 @@ Diagnostics are sorted by path, line, severity and message; string rendering inc
 
 ### 6. Verification Boundary
 
-This change is delivered with static source/format checking and targeted twin comparison only. No test assets, executions, builds or installations are included. Static evidence is not proof of runtime start/archive behavior, semantic decision quality, task classification quality or user approval.
+Verification results and user-authorized runtime checks are recorded in the task's `implement.md`. Static checks alone do not prove runtime start/archive behavior; neither static checks nor passing tests establish semantic decision quality, task classification quality or user approval. No test assets or CI definitions are added or modified by this feature.
 
 ### 7. Wrong vs Correct
 

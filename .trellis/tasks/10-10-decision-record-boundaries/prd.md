@@ -2,7 +2,7 @@
 
 ## Goal
 
-在已批准范围内实施跨任务决策记录与确定性结构校验，减少重复论证和多份文档重复维护。用户已批准整体方案及开始实施；校验模块、命令接入和本地材料已落实，本仓库配置已启用；限定静态核查结果见 implement.md，未做运行验证。
+在已批准范围内实施跨任务决策记录与确定性结构校验，减少重复论证和多份文档重复维护。校验模块、命令接入和本地材料已实现并随 `03993303` 提交，本仓库配置已启用。用户后续授权运行验证、安装必要依赖、构建、本地 CI 审查及缺陷修复；本轮修复已通过本地 CI，结果和验证边界见 implement.md。
 
 ## Background and Confirmed Facts
 
@@ -12,11 +12,11 @@
 - 当前 [任务系统说明](../../../.pi/skills/trellis-meta/references/local-architecture/task-system.md) 将 `research/` 定位为研究材料，任务归档后仍保留在 `tasks/archive/`。不能把任务归档等同于决策材料被删除。
 - 当前 [trellis-update-spec](../../../.pi/skills/trellis-update-spec/SKILL.md) 已要求把重要设计决定写入相关 spec 的 Design Decisions，模板含 Context、Options Considered、Decision。Trellis 并非没有记录决策理由的机制。
 - 当前 [规范系统说明](../../../.pi/skills/trellis-meta/references/local-architecture/spec-system.md) 将 spec 定位为项目工程约定和实现契约。
-- 已静态核对 [cmd_validate](../../scripts/common/task_context.py)：157–198 行只汇总 `implement.jsonl` / `check.jsonl` 校验结果，另对失效分支给出警告；目前不是决策记录校验器。
-- 已静态核对 [cmd_start](../../scripts/task.py)：171–281 行在写入会话指针和任务启动状态前检查上下文清单；`after_start` 在状态更新之后调用。该入口没有自动调用完整的 `cmd_validate`。
-- 已静态核对 [cmd_archive](../../scripts/common/task_store.py)：1257–1458 行包含归档前置检查，随后更新状态、移动目录，并可能自动提交；`after_archive` 在这些操作之后才调用。
-- 已静态核对 [run_task_hooks](../../scripts/common/task_utils.py)：381–485 行从项目 `config.yaml` 读取 hooks，失败或超时只警告，不使生命周期操作失败。因此若要求结构错误阻止开始/归档，需要在状态和目录变更前校验，不能仅接入现有 `after_*` hooks。
-- 已确认的脚本同步约束：[脚本规范](../../spec/cli/backend/script-conventions.md) 的 Two script trees, one content 要求 `.trellis/scripts/**/*.py` 与 `packages/cli/src/templates/trellis/scripts/**/*.py` 的路径集合和文件内容完全一致；已静态核对 [现有断言](../../../packages/cli/test/regression.test.ts) 11755–11817 行确实检查这两点，未执行测试。本仓库 `.trellis/scripts` 是产品脚本的自用副本，不能按普通使用项目的独立本地脚本处理。
+- 规划初查时静态核对 [cmd_validate](../../scripts/common/task_context.py)：157–198 行只汇总 `implement.jsonl` / `check.jsonl` 校验结果，另对失效分支给出警告；当时尚未接入决策记录校验。
+- 规划初查时静态核对 [cmd_start](../../scripts/task.py)：171–281 行在写入会话指针和任务启动状态前检查上下文清单；`after_start` 在状态更新之后调用。该入口没有自动调用完整的 `cmd_validate`。
+- 规划初查时静态核对 [cmd_archive](../../scripts/common/task_store.py)：1257–1458 行包含归档前置检查，随后更新状态、移动目录，并可能自动提交；`after_archive` 在这些操作之后才调用。
+- 规划初查时静态核对 [run_task_hooks](../../scripts/common/task_utils.py)：381–485 行从项目 `config.yaml` 读取 hooks，失败或超时只警告，不使生命周期操作失败。因此若要求结构错误阻止开始/归档，需要在状态和目录变更前校验，不能仅接入现有 `after_*` hooks。
+- 已确认的脚本同步约束：[脚本规范](../../spec/cli/backend/script-conventions.md) 的 Two script trees, one content 要求 `.trellis/scripts/**/*.py` 与 `packages/cli/src/templates/trellis/scripts/**/*.py` 的路径集合和文件内容完全一致；已静态核对 [现有断言](../../../packages/cli/test/regression.test.ts) 11755–11817 行确实检查这两点，规划时未执行测试；后续运行结果见 implement.md。本仓库 `.trellis/scripts` 是产品脚本的自用副本，不能按普通使用项目的独立本地脚本处理。
 - 已核查 [任务元数据与默认 PRD](../../scripts/common/task_store.py)：280–323 行支持字符串型 `meta` 与默认 PRD 骨架，1890–1930 行提供 `set-meta`；规划初查时当前任务的 `meta` 为空；实施激活时已设置 `meta.planning_mode=complex`，限定检索 `.trellis/scripts` 未找到现成的 `complexity` / `task_size` / `planning_mode` 分类约定。既有任务接入方式已获用户确认；明确分类的技术方案见已批准的 design.md。
 
 ## Requirements
@@ -36,7 +36,7 @@
 
 ### Approved Design
 
-- 用户已批准 [design.md](design.md) 与 [implement.md](implement.md) 的整体方案、实施范围及静态核查边界。
+- 用户已批准 [design.md](design.md) 与 [implement.md](implement.md) 的整体方案；初次交付仅静态核查，后续明确授权运行验证、依赖安装、构建、提交、本地 CI 审查及本轮修复。已执行范围和结果见 implement.md；用户已单独确认提交本轮修复，未授权推送或归档。
 - 用户明确不再使用 GitNexus；取消相关工具前置要求及阻塞，不增加替代工具或额外审批流程。
 - 双语配对未纳入本轮范围；内容 hash 不能代替翻译语义审查。
 
@@ -56,9 +56,9 @@
 - [x] 已补齐 design.md、implement.md 及非空的 implement.jsonl / check.jsonl。
 - [x] 用户完成整体规划评审，并单独批准实施；不重复请求相同批准。
 
-### Capability — Implemented (Static Evidence Only)
+### Capability — Implemented
 
-以下勾选表示实现已落地并完成限定静态核查，不表示运行行为已验证；结论与未覆盖范围见 implement.md。
+以下勾选表示实现已落地；实际执行的静态检查、测试、构建及环境边界见 implement.md，不把通过 CI 等同于证明全部业务语义。
 
 - [x] 跨任务重要选择可独立检索，来源、备选方案、结论、理由和适用条件可追溯，任务内资料无须重复完整论证。
 - [x] 采用待决/已采纳/已否决的结论状态，重议新建关联记录，仅已采纳的新结论产生替代效果，历史理由保留。
@@ -75,10 +75,10 @@
 
 - 修改该表之外的产品代码、平台 skills/hooks、其他模板、CI 或无关工程规范。
 - 新增未获批准的生产决策、字段、CLI 命令或其他数据契约。
-- 新增、修改或执行测试，编译、安装、运行验证，提交或推送 Git 改动。
+- 新增或修改测试资产、fixture、测试依赖或 CI 定义；未获授权的额外安装、运行验证、提交、推送或归档。已获授权的现有 CI 检查可执行。
 - 初始化全局开发者身份；当前任务通过 `--assignee zzr-pi` 指定创建者和负责人。
 
 ## Open Questions
 
 - 无待确认的 GitNexus 能力或替代授权事项；原有工具阻塞已取消。
-- 产品代码及本地材料已实施；限定静态核查已完成，Ruff 返回 32 条警告，未做专门类型检查、测试、编译或运行验证；任务未归档、Git 未提交。
+- 本轮修复已通过本地 CI；详细结果、已有警告和与远程 CI 的环境差异见 implement.md。用户已确认提交本轮修复，任务未归档、未推送。

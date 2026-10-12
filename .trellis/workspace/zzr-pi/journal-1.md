@@ -40,3 +40,38 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 2: 归档决策记录与结构校验任务
+<!-- trellis-session: v=2 fp=c61fe0d068ce47a8 -->
+
+**Date**: 2026-10-12
+**Task**: 归档决策记录与结构校验任务
+**Package**: cli
+**Branch**: `main`
+
+### Summary
+
+按用户确认归档已完成的决策记录与结构校验任务，复用既有交付和本地CI证据，不重新实施或检查。
+
+### Main Changes
+
+- 跨任务决策记录及start/validate/archive结构校验已交付，相关脚本模板与模块注册已同步。
+- opt-in修复已随811a6717提交：缺少配置时静默关闭，无关YAML内容不阻断未启用项目。
+- 仅归档10-10-decision-record-boundaries，使用现有非PR归档选项；其他任务、图谱目录和本机安装配置不变，未推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `03993303` | feat(task): validate planning and decision records |
+| `811a6717` | fix(task): respect validation opt-in |
+
+### Testing
+
+- [OK] 复用implement.md记录的既有本地CI结果：2304项通过、1项跳过；语法、类型、lint及构建通过，Python类型检查仍有68条warning、0 errors。
+- [OK] 本次未重跑测试或构建；既有验证环境为macOS/Node24/Python3.14，远程Actions未运行。
+
+### Status
+
+[OK] **Completed**

@@ -1,6 +1,6 @@
 # Start Session
 
-Initialize a Trellis-managed development session. This platform has no session-start hook, so manually load the equivalent compact context by following these steps.
+Use fresh compact SessionStart context already supplied to this session; run the commands below only to fill missing or stale information. Apply Request Triage first: ordinary questions do not require full session initialization or task creation.
 
 ---
 
@@ -23,7 +23,7 @@ python3 ./.trellis/scripts/get_context.py --mode phase
 Full guide in `.trellis/workflow.md` (read on demand).
 
 ## Step 3: Guideline indexes
-Discover packages + spec layers, then read each relevant index file.
+For development work only, discover packages/spec layers if unknown, then read the relevant indexes. Reuse unchanged guidance already available.
 
 ```bash
 python3 ./.trellis/scripts/get_context.py --mode packages
@@ -34,15 +34,16 @@ cat .trellis/spec/<package>/<layer>/index.md   # for each relevant layer
 Index files list the specific guideline docs to read when you actually start coding.
 
 ## Step 4: Decide next action
-From Step 1 you know the current task and status. Check the task directory:
+Apply Request Triage in `.trellis/workflow.md` first; do not infer that every request belongs to the active task.
 
-- **Active task status `planning` + no `prd.md`** → Phase 1.1. Load the `trellis-brainstorm` skill.
-- **Active task status `planning` + `prd.md` exists** → stay in Phase 1. Lightweight tasks can be PRD-only; complex tasks need `design.md` + `implement.md`. Load the relevant Phase 1 step detail before `task.py start`.
-- **Active task status `in_progress`** → Phase 2 step 2.1. Load the step detail:
+- **Question/read-only investigation or a clear low-risk local edit** → handle directly within authorization unless it belongs to an existing planning task. Do not ask to create a task by default or mutate unrelated task records.
+- **Work requiring a formal task** → reuse task-creation consent or ask once if missing, then plan. Creation consent is not implementation approval.
+- **In-scope active task, `planning`** → fill missing artifacts/context only. Lightweight may be PRD-only; complex requires `design.md` + `implement.md`. Pi still requires curated JSONL. Once ready, reuse existing approval for unchanged scope/design and run 1.4; otherwise request the necessary review.
+- **In-scope active task, `in_progress`** → resume the first unfinished step using existing implementation and verification evidence; do not automatically restart implementation. Load missing step detail, for example:
   ```bash
   python3 ./.trellis/scripts/get_context.py --mode phase --step 2.1 --platform pi
   ```
-- **No active task** → classify first. For simple conversation / small task, ask only whether this turn should create a Trellis task. For complex work, ask whether you may create a Trellis task and enter planning. If the user says no, skip Trellis for this session.
+- **Pi execution** → main-session `trellis-before-dev` → implementation → `trellis-check` skill. Delegate only independent useful work when permitted; do not repeat approvals or valid checks solely on session restart.
 
 ---
 
@@ -50,10 +51,10 @@ From Step 1 you know the current task and status. Check the task directory:
 
 | User intent | Skill |
 |---|---|
-| New feature / unclear requirements | `trellis-brainstorm` |
+| In-scope formal task planning / unresolved requirements | `trellis-brainstorm` |
 | About to write code | `trellis-before-dev` |
 | Done coding / quality check | `trellis-check` |
 | Stuck / fixed same bug multiple times | `trellis-break-loop` |
-| Learned something worth capturing | `trellis-update-spec` |
+| Delivery check identified a needed spec update | `trellis-update-spec` |
 
 Full rules + anti-rationalization table in `.trellis/workflow.md`.

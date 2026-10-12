@@ -1,6 +1,6 @@
 # Continue Current Task
 
-Resume work on the current task — pick up at the right phase/step in `.trellis/workflow.md`.
+Resume in-scope work at the next unfinished step in `.trellis/workflow.md`, reusing fresh context, approval and valid evidence. Unrelated questions are answered directly without changing task state or artifacts; independent development follows Request Triage.
 
 ---
 
@@ -10,7 +10,7 @@ Resume work on the current task — pick up at the right phase/step in `.trellis
 python3 ./.trellis/scripts/get_context.py
 ```
 
-Confirms: current task, git state, recent commits.
+Confirms: current task, git state, recent commits. Reuse fresh supplied context; run this only when that information is missing or stale.
 
 ## Step 2: Load the Phase Index
 
@@ -18,30 +18,31 @@ Confirms: current task, git state, recent commits.
 python3 ./.trellis/scripts/get_context.py --mode phase
 ```
 
-Shows the Phase Index (Plan / Execute / Finish) with routing + skill mapping.
+Shows the Phase Index (Plan / Execute / Finish) with routing + skill mapping. Reload only if it is missing or changed.
 
 ## Step 3: Decide Where You Are
 
-`get_context.py` shows the active task's `status` field. Route by `status` + artifact presence. This command replaces the user needing to remember the Trellis flow; it does not itself approve implementation.
+For requests belonging to the active task, route by status, required artifacts and recoverable approval/evidence. This command itself is not approval, but it does not invalidate approval already given for the same scope/design. Without an active task, apply Request Triage rather than automatically creating one.
 
 - `status=planning` + no `prd.md` → **1.1** (load `trellis-brainstorm`)
 - `status=planning` + `prd.md` only → decide whether the task is lightweight or complex. Lightweight can move to **1.4** review; complex returns to **1.1** to add `design.md` + `implement.md`.
-- `status=planning` + complex artifacts complete + sub-agent jsonl not curated (empty, or only a legacy `_example` placeholder row) → **1.3**
-- `status=planning` + required artifacts complete + required jsonl curated or inline mode → **1.4** (ask for start review; only run `task.py start` after user confirms)
-- `status=in_progress` + implementation not started → **2.1**
-- `status=in_progress` + implementation done, not yet checked → **2.2**
-- `status=in_progress` + check passed → **3.3** (spec update) → **3.4** (commit)
+- `status=planning` + required artifacts complete + required jsonl not curated (including Pi; seed-only is not ready) → **1.3**
+- `status=planning` + required artifacts/context ready → **1.4**: reuse an existing approval for unchanged scope/design; request review only if approval is missing or material changes require it, then run `task.py start`.
+- `status=in_progress` + implementation incomplete (not started or partially done) → **2.1**; existing checks do not establish completion of the remaining work.
+- `status=in_progress` + implementation done, verification evidence missing/stale/partial → **2.2**; supplement only the affected authorized checks.
+- `status=in_progress` + unresolved blocking findings or failed required checks → remain in **Phase 2**: fix within scope via **2.1**, then re-check the affected scope via **2.2**, or report the blocker. Valid failure evidence remains a failure, not permission to advance.
+- `status=in_progress` + implementation complete + current full-scope evidence satisfies the agreed delivery criteria + no unresolved blocking failures → **3.3** (reuse the spec judgment or perform the indicated update) → **3.4** (existing Git authorization/commit flow). Reuse valid passing evidence rather than repeating it solely on resume. Disclose unauthorized/unexecuted checks; they are not passes. If a required delivery criterion remains unverified, report the gap and stay in Phase 2.
 - `status=completed` (rare; usually archived immediately) → archive flow
 
 Phase rules (full detail in `.trellis/workflow.md`):
 
 1. Run steps **in order** within a phase — `[required]` steps must not be skipped
-2. `[once]` steps are already done if the required output exists. `prd.md` alone can be enough only for lightweight tasks; complex tasks also need `design.md` and `implement.md`.
+2. `[once]` steps reuse valid outputs and approval for unchanged scope/inputs. File presence alone proves neither approval nor verification; lightweight tasks may be PRD-only, complex tasks need all three documents.
 3. You may go back to an earlier phase if discoveries require it
 
 ## Step 4: Load the Specific Step
 
-Once you know which step to resume at:
+Load only missing/changed detail for the next unfinished step. On Pi, implementation and the `trellis-check` skill run in the main session by default; independent delegation remains subject to permissions:
 
 ```bash
 python3 ./.trellis/scripts/get_context.py --mode phase --step <X.X> --platform pi

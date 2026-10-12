@@ -5,7 +5,9 @@ description: "Resume work on the current task. Loads the workflow Phase Index, f
 
 # Continue Current Task
 
-Resume work on the current task — pick up at the right phase/step in `.trellis/workflow.md`.
+**Pi only:** read repo-root `.pi/prompts/trellis-continue.md` and follow its routing and completion conditions instead of the steps below. This keeps the local pilot in the Pi entry point.
+
+**Other platforms:** resume work on the current task — pick up at the right phase/step in `.trellis/workflow.md` using the existing steps below.
 
 ---
 

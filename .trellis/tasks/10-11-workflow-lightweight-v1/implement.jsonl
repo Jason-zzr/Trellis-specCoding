@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/cli/backend/workflow-state-contract.md", "reason": "Preserve existing workflow markers, status writers and breadcrumb reachability while changing local policy text."}

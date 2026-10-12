@@ -5,7 +5,9 @@ description: "Initializes an AI development session by reading workflow guides, 
 
 # Start Session
 
-Initialize a Trellis-managed development session. This platform has no session-start hook, so manually load the equivalent compact context by following these steps.
+**Pi only:** read repo-root `.pi/prompts/trellis-start.md` and follow that entry point instead of the steps below. Its local pilot triage and evidence-reuse rules do not apply to other platforms.
+
+**Other platforms:** initialize a Trellis-managed development session by manually loading the equivalent compact context using the existing steps below.
 
 ---
 

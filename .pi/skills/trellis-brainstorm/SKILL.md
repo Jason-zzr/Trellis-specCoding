@@ -1,17 +1,17 @@
 ---
 name: trellis-brainstorm
-description: "Guides collaborative requirements discovery before implementation. Creates task directory, seeds PRD, asks high-value questions one at a time, researches technical choices, and converges on MVP scope. Use when requirements are unclear, there are multiple valid approaches, or the user describes a new feature or complex task."
+description: "Guides requirements discovery for formal tasks before implementation. Uses repository evidence, groups independent decisions, persists planning conclusions, and obtains one approval for the reviewed plan. Use when a formal task has unresolved requirements or missing planning artifacts; direct low-risk work follows workflow Request Triage."
 ---
 
 # Trellis Brainstorm
 
 ## Non-Negotiable Planning Contract
 
-A request to build, implement, fix, refactor, or "go ahead" is not approval to leave planning. Task-creation consent is also not implementation approval.
+This skill governs formal task planning, not ordinary questions or the direct low-risk path in `.trellis/workflow.md`. Task-creation consent and an initial modification request are not approval of a formal task's plan.
 
-For every non-trivial task, the user must respond at least once after the initial request before implementation begins. If no clarification is needed, that response must approve the final planning summary described below.
+Before a formal task enters implementation, the user must explicitly approve its complete reviewed plan. Obtain that approval once and reuse it across continuations when scope/design are unchanged. Artifact presence alone is not approval; a request only to plan never authorizes implementation.
 
-While any user-owned product, scope, UX, compatibility, risk, or acceptance decision remains unresolved, end the turn with exactly one highest-value question. Do not edit product code, dispatch implementation, or run `task.py start`.
+While a user-owned scope, product, UX, compatibility, risk or acceptance decision remains unresolved, ask only the needed questions and stay in planning. Group independent decisions; ask dependent questions in order. Do not edit product code, dispatch implementation or run `task.py start` before plan approval.
 
 ## Non-Negotiable Evidence Rule
 
@@ -53,18 +53,18 @@ Use a concise title from the user's request. Both the title and `--description` 
    - product intent still needed from the user
    - scope or risk decisions still needed from the user
    - likely out-of-scope items
-4. If a user-owned decision remains, ask the single highest-value question, include your recommendation and trade-off, then stop. Do not perform implementation work in the same turn.
-5. After each user answer, update `prd.md`, recompute the decision inventory, and repeat from step 2.
+4. If user-owned decisions remain, group independent questions with recommendations and trade-offs; sequence dependent questions. Stop before implementation while they remain unresolved.
+5. Persist conclusions in the affected planning sections when an answer changes requirements, constraints, decisions or acceptance criteria. Reuse settled evidence; do not re-research or rewrite all artifacts after every reply.
 6. When no user-owned decision remains, create or update `design.md` and `implement.md` for complex tasks.
 7. Run the requirement convergence gate, then the PRD convergence pass.
-8. Present the final planning summary and stop. Do not run `task.py start` or edit product code in the same turn.
-9. Only a subsequent user message that explicitly approves the latest planning summary authorizes `task.py start` and implementation. If the artifacts change materially after approval, repeat the final review.
+8. If the complete plan has not yet been reviewed and approved, present the final planning summary and stop; do not run `task.py start` or edit product code in that turn.
+9. An explicit response approving the reviewed plan authorizes `task.py start` and implementation. Reuse recoverable approval for that same plan on resume; repeat review only for material scope/design/risk changes. If approval evidence cannot be recovered, ask rather than infer it from file existence.
 
 Do not invent a project-specific product/spec hierarchy. If the repository already has product, domain, or spec docs, use them. If it does not, proceed with the evidence that exists.
 
 ## Question Rules
 
-Ask only one question per message.
+Group independent questions in one message when useful. Ask one at a time when later choices depend on the answer; do not manufacture a fixed number of questions.
 
 Each question must include:
 
@@ -77,9 +77,9 @@ Do not ask process questions such as whether to search, inspect files, or contin
 
 Recommendations are not default selections. Never choose a recommended product decision on the user's behalf merely because the user asked for implementation.
 
-Do not manufacture clarification questions when the request and repository evidence already resolve every decision. In that case, proceed directly to the final planning summary, which still requires a subsequent explicit approval.
+Do not manufacture clarification questions when the request and evidence already resolve the decisions. If the complete plan has not been approved, present it for one implementation approval; if it already has, continue without another review request.
 
-The final review is a required phase-transition gate, not a prohibited process question. Task-creation consent, the initial implementation request, and approval given before the latest final summary do not satisfy this gate.
+Task-creation consent and the initial implementation request do not replace plan review. Reformatting artifacts or starting a new session does not invalidate approval for unchanged scope and design.
 
 ## Thinking Framework: First Principles Analysis
 
@@ -135,7 +135,7 @@ Before final review, verify all of the following:
 - blocking open questions are empty
 - technical unknowns are researched or explicitly deferred without changing MVP behavior
 
-Lightweight tasks may omit `design.md` and `implement.md`; they may not skip evidence inspection, requirement convergence, final review, or fresh implementation approval.
+Lightweight formal tasks may omit `design.md` and `implement.md`, but still need the applicable evidence, a converged plan and one explicit implementation approval. The direct path outside formal tasks follows Request Triage instead.
 
 The final planning summary must show Goal, In Scope, Out of Scope, Acceptance Criteria, Key Decisions, relevant Risks or Deferred Items, and artifact status.
 
@@ -171,7 +171,7 @@ Lightweight tasks may have only `prd.md`. Complex tasks must have `prd.md`, `des
 
 ## PRD Convergence Pass
 
-Before declaring planning ready or running `task.py start`, rewrite `prd.md` once against the final structure described in the artifact rules above. This is not optional cleanup; it is the final planning gate.
+Before final review, check `prd.md` against the artifact structure once and consolidate only where needed. A PRD already meeting this structure does not need a cosmetic rewrite. Reuse the completed pass unless relevant requirements change.
 
 The pass must be lossless:
 
@@ -194,6 +194,6 @@ Before declaring planning ready:
 - Blocking open questions are empty.
 - Complex tasks have `design.md` and `implement.md`.
 - The latest final planning summary has been presented to the user.
-- In a subsequent message, the user explicitly approved that summary for implementation.
+- Explicit user approval of that reviewed scope/design is recorded or recoverable; reuse it when unchanged.
 
 Do not start implementation merely because the user originally asked for implementation.

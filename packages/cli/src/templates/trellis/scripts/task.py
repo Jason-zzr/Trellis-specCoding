@@ -6,7 +6,7 @@ Task Management Script.
 Usage:
     python3 task.py create "<title>" --description "<desc>" [--slug <name>] [--assignee <dev>] [--priority P0|P1|P2|P3] [--parent <dir>] [--package <pkg>] [--no-start] [--force]
     python3 task.py add-context <dir> <file> <path> [reason] # Add jsonl entry
-    python3 task.py validate <dir>              # Validate jsonl files
+    python3 task.py validate <dir> [--allow-empty-context]  # Validate jsonl files
     python3 task.py list-context <dir>          # List jsonl entries
     python3 task.py start <dir>                 # Set active task, record current branch
     python3 task.py current [--source] [--json] # Show active task
@@ -539,7 +539,7 @@ Usage:
   python3 task.py create <title> --description <desc> --parent <dir>    Create task as child of parent
   python3 task.py create <title> --description <desc> --no-start        Create without making it active in this session
   python3 task.py add-context <dir> <jsonl> <path> [reason]  Add entry to jsonl
-  python3 task.py validate <dir>                     Validate jsonl files
+  python3 task.py validate <dir> [--allow-empty-context]  Validate jsonl files
   python3 task.py list-context <dir>                 List jsonl entries
   python3 task.py start <dir>                        Set active task; records the checked-out branch when unset
   python3 task.py current [--source]                 Show active task
@@ -683,6 +683,11 @@ def main() -> int:
     # validate
     p_validate = subparsers.add_parser("validate", help="Validate context files")
     p_validate.add_argument("dir", help="Task directory")
+    p_validate.add_argument(
+        "--allow-empty-context",
+        action="store_true",
+        help="Allow empty manifests while still validating all entries and task structure",
+    )
 
     # list-context
     p_listctx = subparsers.add_parser("list-context", help="List context entries")

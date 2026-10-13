@@ -1,0 +1,28 @@
+{
+  "id": "workflow-lightweight-v2",
+  "name": "workflow-lightweight-v2",
+  "title": "Trellis 流程轻量化：第二版材料按需",
+  "description": "保留决策生命周期和结构校验，规划Pi主线程JSONL按需及任务规划材料精简；仅仓库内修改，实施前评审完整计划。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": "cli",
+  "priority": "P2",
+  "creator": "zzr-pi",
+  "assignee": "zzr-pi",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "Complete design and implementation plan approved by the user, including planning_layout, both direct Python template mirrors and the repository Pi delegation entry. Repository-only implementation and one static check; no tests, build, installation, real delegation or Git operations authorized.",
+  "meta": {
+    "planning_mode": "complex"
+  }
+}

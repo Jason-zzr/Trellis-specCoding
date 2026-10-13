@@ -20,11 +20,13 @@ git status --short
 ```
 ## Step 2: Read Task Artifacts and Applicable Specs
 
-For an in-scope formal task, read the applicable `check.jsonl` references and task artifacts below, reusing unchanged material already loaded. A direct low-risk edit uses its request and relevant specs; it does not require task artifacts or load an unrelated task:
+For an in-scope formal task, read the selected layout's task artifacts and relevant specs directly, reusing unchanged material. Use existing curated `check.jsonl` references if helpful; do not create/fill the manifest for a main-session check. A direct low-risk edit uses its request/specs, not an unrelated task:
 
 - `prd.md`
-- `design.md` if present
-- `implement.md` if present
+- `design.md` for complex tasks (compact includes Ordered Steps and Validation), otherwise if present
+- `implement.md` for standard complex tasks; compact/lightweight only if already present
+
+Only an explicitly permitted checker delegation needs a curated and validated `check.jsonl` with usable file context before dispatch. The project tool enforces its readiness; other dispatch tools require the parent check. This prerequisite does not authorize delegation or mandate filling `implement.jsonl`.
 
 ```bash
 python3 ./.trellis/scripts/get_context.py --mode packages

@@ -686,7 +686,10 @@ def cmd_create(args: argparse.Namespace) -> int:
     print(colored("Next steps:", Colors.BLUE), file=sys.stderr)
     print("  - Fill prd.md with requirements and acceptance criteria", file=sys.stderr)
     print("  - Lightweight task: PRD-only is valid", file=sys.stderr)
-    print("  - Complex task: add design.md and implement.md before task.py start", file=sys.stderr)
+    if meta.get("planning_mode") == "complex" and meta.get("planning_layout") == "compact":
+        print("  - Compact complex task: add design.md with Scope, Contracts, Ordered Steps and Validation", file=sys.stderr)
+    else:
+        print("  - Complex task: add design.md and implement.md before task.py start", file=sys.stderr)
     if created_jsonl:
         print(
             "  - Curate implement.jsonl / check.jsonl (created empty) as spec/research "
@@ -702,6 +705,8 @@ def cmd_create(args: argparse.Namespace) -> int:
             "      list available specs: python3 .trellis/scripts/get_context.py --mode packages",
             file=sys.stderr,
         )
+        print("  - Pi main-session work may leave unused manifests empty; after approval, start with --allow-empty-context", file=sys.stderr)
+        print("    Curate the selected role's manifest before actual delegation; other platforms retain their workflow requirements", file=sys.stderr)
     print("  - Use /trellis:continue or phase context to decide the next step", file=sys.stderr)
     print("", file=sys.stderr)
 

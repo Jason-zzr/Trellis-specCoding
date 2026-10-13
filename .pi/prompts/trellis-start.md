@@ -38,12 +38,13 @@ Apply Request Triage in `.trellis/workflow.md` first; do not infer that every re
 
 - **Question/read-only investigation or a clear low-risk local edit** → handle directly within authorization unless it belongs to an existing planning task. Do not ask to create a task by default or mutate unrelated task records.
 - **Work requiring a formal task** → reuse task-creation consent or ask once if missing, then plan. Creation consent is not implementation approval.
-- **In-scope active task, `planning`** → fill missing artifacts/context only. Lightweight may be PRD-only; complex requires `design.md` + `implement.md`. Pi still requires curated JSONL. Once ready, reuse existing approval for unchanged scope/design and run 1.4; otherwise request the necessary review.
+- **In-scope active task, `planning`** → fill only the selected layout's missing requirements. Lightweight may be PRD-only; complex defaults to three documents, or explicitly selects `meta.planning_layout: compact` for PRD + design (Scope, Contracts, Ordered Steps, Validation). Choose standard for separate batches/dependencies/handoff. For approved main-session work, use `task.py start <task-dir> --allow-empty-context`; do not curate unused JSONL. Reuse existing approval for unchanged scope/design; otherwise request review.
 - **In-scope active task, `in_progress`** → resume the first unfinished step using existing implementation and verification evidence; do not automatically restart implementation. Load missing step detail, for example:
   ```bash
   python3 ./.trellis/scripts/get_context.py --mode phase --step 2.1 --platform pi
   ```
 - **Pi execution** → main-session `trellis-before-dev` → implementation → `trellis-check` skill. Delegate only independent useful work when permitted; do not repeat approvals or valid checks solely on session restart.
+- **Actual implement/check delegation** → first curate and validate only the selected role's manifest and ensure usable file references. The project `trellis_subagent` enforces this before spawn; native/community tools require the parent to check it. Preserve existing permissions and the Active task prefix.
 
 ---
 

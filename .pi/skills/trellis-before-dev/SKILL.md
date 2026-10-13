@@ -8,8 +8,8 @@ Read the relevant development guidelines before starting your task.
 Execute these steps:
 
 1. **Resolve the request's scope before loading task artifacts**:
-   - For an in-scope formal task, read `prd.md`, then `design.md` and `implement.md` if present, plus relevant curated `implement.jsonl` references. Reuse unchanged context already loaded.
-   - If that task is still planning, do not edit until the reviewed plan is approved and `task.py start` succeeds; do not repeat a recoverable approval.
+   - For an in-scope formal task, recover `meta.planning_mode` / `meta.planning_layout` (omitted layout means standard). Read PRD and the selected layout's reviewed documents; compact design contains Ordered Steps and Validation, with `implement.md` optional. Reuse existing useful JSONL references if present, but read specs directly and do not create/fill a manifest for main-session work.
+   - If still planning, require reviewed-plan approval and a successful `task.py start`; main-session work uses `--allow-empty-context` without waiving structure validation. Reuse existing approval, do not recreate optional documents, and prepare/validate the selected manifest only before actual permitted delegation.
    - For a direct low-risk edit under workflow Request Triage, use the request and relevant specs; do not create a task or demand nonexistent planning artifacts. Do not load or mutate an unrelated active task's records.
    - Stop before expanding into unresolved scope or high-risk work; route that work to task planning.
 2. **Discover packages and their spec layers only if not already known**:

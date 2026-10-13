@@ -55,7 +55,7 @@ Use a concise title from the user's request. Both the title and `--description` 
    - likely out-of-scope items
 4. If user-owned decisions remain, group independent questions with recommendations and trade-offs; sequence dependent questions. Stop before implementation while they remain unresolved.
 5. Persist conclusions in the affected planning sections when an answer changes requirements, constraints, decisions or acceptance criteria. Reuse settled evidence; do not re-research or rewrite all artifacts after every reply.
-6. When no user-owned decision remains, create or update `design.md` and `implement.md` for complex tasks.
+6. When no user-owned decision remains, prepare the selected complex layout: standard `design.md` + `implement.md`, or explicitly compact design with the execution plan inside it.
 7. Run the requirement convergence gate, then the PRD convergence pass.
 8. If the complete plan has not yet been reviewed and approved, present the final planning summary and stop; do not run `task.py start` or edit product code in that turn.
 9. An explicit response approving the reviewed plan authorizes `task.py start` and implementation. Reuse recoverable approval for that same plan on resume; repeat review only for material scope/design/risk changes. If approval evidence cannot be recovered, ask rather than infer it from file existence.
@@ -150,7 +150,7 @@ The final planning summary must show Goal, In Scope, Out of Scope, Acceptance Cr
 - out of scope
 - open questions that still block planning
 
-`design.md` records technical design for complex tasks:
+`design.md` records technical design for complex tasks. In the default standard layout it covers:
 
 - architecture and boundaries
 - data flow and contracts
@@ -158,16 +158,20 @@ The final planning summary must show Goal, In Scope, Out of Scope, Acceptance Cr
 - important trade-offs
 - operational or rollback considerations
 
-`implement.md` records execution planning for complex tasks:
+`implement.md` records the separately maintained execution plan for standard complex tasks:
 
 - ordered implementation checklist
 - validation commands
 - risky files or rollback points
 - follow-up checks before `task.py start`
 
-Lightweight tasks may have only `prd.md`. Complex tasks must have `prd.md`, `design.md`, and `implement.md` before `task.py start`.
+Lightweight remains PRD-only. Complex defaults to all three documents, with `meta.planning_layout` omitted or `standard`. Use standard when complex dependencies, batches or handoff need a separate execution plan.
 
-`implement.md` is not a replacement for `implement.jsonl`. Use JSONL files only for manifest-style spec and research references when the task needs them.
+For suitable complex work, explicitly set `meta.planning_layout: compact` through existing create/set-meta commands before review. Require PRD plus design sections `Scope`, `Contracts`, `Ordered Steps`, `Validation`; include necessary solution choices, dependencies, rollback and acceptance without duplicated scaffolding. Keep/check any existing optional `implement.md`; Ordered Steps can reference it. Do not infer layout from missing files, downgrade complexity to avoid materials, or select compact for lightweight tasks.
+
+Main-session work reads specs directly and leaves unused empty JSONL alone. Reuse useful existing manifests; actual creation seeds empty files, not an `_example` row. Only before permitted implement/check delegation, curate the selected role's manifest, run existing `task.py validate`, and require usable file context. Remove obsolete scaffold rows when curating: explicit validation rejects them. Malformed existing manifests still need repair, while the unused role need not be nonempty.
+
+After reviewed materials and implementation approval are ready, main-session work uses `task.py start <task-dir> --allow-empty-context`. This bypasses advance JSONL readiness only, not structure validation or approval. It does not establish later delegation readiness. The repository tool checks readiness before spawn; native/community tools require the parent to check it. Permissions and the Active task prefix remain unchanged.
 
 ## PRD Convergence Pass
 
@@ -192,7 +196,7 @@ Before declaring planning ready:
 - `prd.md` has passed the PRD convergence pass: no unresolved temporary brainstorm sections, no duplicate facts across sections, and no lost anchors, decisions, or acceptance mappings.
 - Repository-answerable questions have already been answered through inspection.
 - Blocking open questions are empty.
-- Complex tasks have `design.md` and `implement.md`.
+- Complex tasks have their selected layout's required documents/sections; optional files are not recreated just to resume. If actual delegation is selected, the selected role has validated, usable file context.
 - The latest final planning summary has been presented to the user.
 - Explicit user approval of that reviewed scope/design is recorded or recoverable; reuse it when unchanged.
 

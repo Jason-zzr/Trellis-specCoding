@@ -1181,25 +1181,78 @@ function buildStartupContext(
     .join("\n\n");
 }
 
-function buildContext(root: string, agent: string, key: string | null): string {
+function buildContext(
+  root: string,
+  agent: string,
+  key: string | null,
+  requireRoleContext = false,
+): string {
+  const jsonlName = TRELLIS_AGENT_JSONL[agent] ?? "";
+  const requireManifest = requireRoleContext && Boolean(jsonlName);
   const dir = readTaskDir(root, key);
-  if (!dir)
+  if (!dir) {
+    if (requireManifest)
+      throw new Error(
+        "No active Trellis task. Activate the approved task before delegation.",
+      );
     return "No active Trellis task found. Read .trellis/ before proceeding.";
+  }
+  if (requireManifest) {
+    const script = join(root, ".trellis", "scripts", "task.py");
+    const py = process.platform === "win32" ? "python" : "python3";
+    // Validate all references; selected-role readiness is enforced below.
+    const result = spawnSync(py, ["-B", script, "validate", dir, "--allow-empty-context"], {
+      cwd: root,
+      env: key ? { ...process.env, TRELLIS_CONTEXT_ID: key } : process.env,
+      encoding: "utf-8",
+      timeout: 30_000,
+      maxBuffer: MAX_STDERR,
+      windowsHide: true,
+    });
+    if (result.error || result.status !== 0) {
+      const diagnostic =
+        result.error?.message ||
+        [result.stdout, result.stderr].filter(Boolean).join("\n").trim() ||
+        `Validation exited with status ${result.status ?? "unknown"}`;
+      throw new Error(
+        `Cannot delegate ${agent}: task.py validate failed.\n${diagnostic}`,
+      );
+    }
+  }
   const relTaskDir = relative(root, dir).replace(/\\/g, "/");
   const limits = readContextInjectionLimits(root);
   const budget = new ContextBudget(limits.max_total_bytes);
 
   // 1. Curated spec/research files from {agent}.jsonl (same order, budget
   //    processed first, matching Python's get_agent_context()).
-  const jsonlName = TRELLIS_AGENT_JSONL[agent] ?? "";
   const specBlocks: string[] = [];
+  let hasUsableFileContext = false;
   if (jsonlName) {
     for (const entry of readJsonlEntries(dir, jsonlName)) {
       if (entry.type === "directory") continue;
+      const data = requireManifest ? readFileBytes(root, entry.file) : null;
+      if (requireManifest && data === null)
+        throw new Error(
+          `Cannot read ${entry.file} from ${jsonlName}. Repair the reference before delegation.`,
+        );
       const block = materializeFile(root, entry.file, entry.reason, limits, budget);
-      if (block) specBlocks.push(block);
+      if (block) {
+        specBlocks.push(block);
+        if (
+          data &&
+          !isBinaryContent(data) &&
+          truncateUtf8(data, limits.max_file_bytes).toString("utf-8").trim() &&
+          block.startsWith(`=== ${entry.file} ===\n`)
+        ) {
+          hasUsableFileContext = true;
+        }
+      }
     }
   }
+  if (requireManifest && !hasUsableFileContext)
+    throw new Error(
+      `Cannot delegate ${agent}: ${join(dir, jsonlName)} must supply at least one readable, nonempty text file within the context limits. Curate this role's spec/research manifest before delegation.`,
+    );
   const spec = specBlocks.join("\n\n");
 
   // 2-4. Task artifacts, in order: prd.md -> design.md -> implement.md.
@@ -1254,17 +1307,16 @@ function isTrellisAgent(root: string, agent: string): boolean {
 function buildPrompt(
   root: string,
   input: SubagentInput,
-  key: string | null,
+  context: string,
 ): string {
   const agent = normalizeAgent(input.agent);
   const raw = readText(join(root, ".pi", "agents", `${agent}.md`));
   const def = stripFM(raw);
-  const ctx = buildContext(root, agent, key);
   return [
     "## Trellis Agent Definition",
     def || "(missing)",
     "",
-    ctx,
+    context,
     "",
     "## Delegated Task",
     input.prompt ?? "",
@@ -1658,6 +1710,8 @@ async function runSubagent(
   };
 
   try {
+    // Validate and materialize one snapshot before launching any child in this dispatch.
+    const context = buildContext(root, agentName, key, true);
     if (mode === "parallel") {
       const prompts = input.prompts ?? (input.prompt ? [input.prompt] : []);
       details.runs = prompts.map((p, i) => {
@@ -1670,7 +1724,7 @@ async function runSubagent(
         prompts.map((p, i) =>
           runPi(
             root,
-            buildPrompt(root, { ...input, prompt: p }, key),
+            buildPrompt(root, { ...input, prompt: p }, context),
             runCfg,
             details.runs[i]!,
             emit,
@@ -1702,7 +1756,7 @@ async function runSubagent(
               ...input,
               prompt: prev ? `${p}\n\nPrevious output:\n${prev}` : p,
             },
-            key,
+            context,
           ),
           runCfg,
           rs,
@@ -1723,7 +1777,7 @@ async function runSubagent(
     emit(true);
     const result = await runPi(
       root,
-      buildPrompt(root, input, key),
+      buildPrompt(root, input, context),
       runCfg,
       rs,
       emit,
@@ -1939,6 +1993,7 @@ export default function trellisExtension(pi: {
       return {
         content: [{ type: "text", text: result.output }],
         details: result.details,
+        isError: result.failed,
       };
     },
     // Hide the call renderer so the native card only shows result/progress once.

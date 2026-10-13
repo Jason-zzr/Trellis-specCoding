@@ -172,18 +172,21 @@ Phase 3: Finish  → verify, update spec, commit, and wrap up
 ### Planning Artifacts
 
 - `prd.md` — requirements, constraints, and acceptance criteria. Do not put technical design or execution checklists here.
-- `design.md` — technical design for complex tasks: boundaries, contracts, data flow, tradeoffs, compatibility, rollout / rollback shape.
-- `implement.md` — execution plan for complex tasks: ordered checklist, validation commands, review gates, and rollback points.
-- `implement.jsonl` / `check.jsonl` — spec and research manifests for sub-agent context. They do not replace `implement.md`.
-- Lightweight tasks may be PRD-only. Complex tasks must have `prd.md`, `design.md`, and `implement.md` before `task.py start`.
+- `design.md` — technical design for complex tasks; on Pi, an explicitly selected compact layout also holds ordered execution and validation.
+- `implement.md` — separate execution plan for standard complex tasks; use it for independently maintained batches, complex dependencies or handoff.
+- `implement.jsonl` / `check.jsonl` — spec/research manifests for sub-agent context, not execution plans. Pi prepares a role manifest only for actual delegation; other platforms retain their existing requirements.
+- Lightweight tasks may be PRD-only. Complex tasks default to `prd.md`, `design.md` and `implement.md`; Pi may select the compact contract below before review.
 
 **Local structure contract** (when `task_structure_validation: true`): declare `task.json.meta.planning_mode` as `lightweight` or `complex` using existing `create --meta` / `set-meta` commands. Missing classification is an error, including for existing tasks at their next start/archive.
 
 | Document | Required level-two sections (exactly once, with content) |
 | --- | --- |
 | `prd.md` (all tasks) | `Goal`, `Requirements`, `Acceptance Criteria` |
-| `design.md` (complex; checked if present for lightweight) | `Scope`, `Contracts`, `Data Flow`, `Tradeoffs`, `Rollout and Rollback` |
-| `implement.md` (complex; checked if present for lightweight) | `Ordered Steps`, `Validation`, `Review Gates`, `Rollback Points` |
+| `design.md` (standard complex; checked if present for lightweight) | `Scope`, `Contracts`, `Data Flow`, `Tradeoffs`, `Rollout and Rollback` |
+| `design.md` (explicit compact complex) | `Scope`, `Contracts`, `Ordered Steps`, `Validation` |
+| `implement.md` (standard complex; checked whenever present) | `Ordered Steps`, `Validation`, `Review Gates`, `Rollback Points` |
+
+Pi selects `meta.planning_layout: compact` for suitable complex tasks via existing metadata commands; omitted/`standard` keeps the default contract. Compact combines the necessary solution/tradeoffs, ordered work/dependencies/rollback and validation in `design.md`. Prefer standard when execution needs a separately maintained plan. Keep existing optional `implement.md` and check its standard sections; compact Ordered Steps may reference it instead of duplicating the plan. Unknown layouts and lightweight/compact are errors; do not downgrade complexity to avoid materials. Other platforms' default instructions and historical tasks are unchanged.
 
 Code-fenced headings and HTML comments do not satisfy sections. Search [cross-task decisions](./decisions/README.md) during planning and register relevant record paths in `relatedFiles`; keep ordinary task-local choices in `design.md`. Start/archive reject structural errors before state changes; this does not establish user approval, appropriate classification or sound reasoning. Historical archived task documents are not migrated.
 
@@ -192,6 +195,7 @@ Code-fenced headings and HTML comments do not satisfy sections. Search [cross-ta
 Use a parent task when one user request contains several independently verifiable deliverables. The parent task owns the source requirement set, the task map, cross-child acceptance criteria, and final integration review; it normally should not be the implementation target unless it also has direct work.
 
 Use child tasks for deliverables that can be planned, implemented, checked, and archived independently. Parent/child structure is not a dependency system: if one child must wait for another, write that ordering in the child `prd.md` / `implement.md` and keep each child's acceptance criteria testable.
+For explicitly compact Pi children, ordered dependencies belong in `design.md` under Ordered Steps; do not create an optional execution file solely for this rule.
 
 Create new children with `task.py create "<title>" --slug <name> --parent <parent-dir>`. Link existing tasks with `task.py add-subtask <parent> <child>`, and unlink mistakes with `task.py remove-subtask <parent> <child>`.
 
@@ -206,9 +210,9 @@ Other platforms: for simple conversation / small tasks, ask whether this turn sh
 
 ### Phase 1: Plan
 - 1.0 Create task `[required · once]` (only after task-creation consent)
-- 1.1 Requirement exploration `[required · repeatable]` (`prd.md`; complex tasks also need `design.md` + `implement.md`)
+- 1.1 Requirement exploration `[required · repeatable]` (`prd.md`; complex tasks follow the selected layout, with all three documents as the default)
 - 1.2 Research `[optional · repeatable]`
-- 1.3 Configure context `[required · once]` — Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, Oh My Pi, ZCode, Snow, Reasonix, Grok, Kimi Code (existing manifest requirements remain; Pi keeps them for main-session work too, other inline platforms skip)
+- 1.3 Configure context `[required · once]` — Pi: only before actual delegation, for the selected role; other sub-agent platforms retain pre-start manifests, other inline platforms skip
 - 1.4 Activate task `[required · once]` (review gate, then `task.py start`; status → in_progress)
 - 1.5 Completion criteria
 
@@ -217,9 +221,9 @@ Other platforms: for simple conversation / small tasks, ask whether this turn sh
 [workflow-state:planning]
 Pi only: for in-scope requests, load `trellis-brainstorm` as needed; stay in planning until explicit approval of the complete plan. Unrelated questions do not alter this task. Reuse recoverable approval for unchanged scope/design; ask for review if it is missing or the plan materially changed.
 Other platforms: load `trellis-brainstorm`; stay in planning and ask for review before `task.py start`.
-All platforms: lightweight tasks may be PRD-only; complex tasks need `prd.md`, `design.md`, and `implement.md` before start.
+Lightweight tasks may be PRD-only. Complex tasks default to `prd.md`, `design.md`, and `implement.md`; Pi may explicitly select `meta.planning_layout: compact` with PRD plus design sections Scope, Contracts, Ordered Steps and Validation. Keep and check existing optional documents; other platforms' default rules remain unchanged.
 Multi-deliverable scope: consider a parent task plus independently verifiable child tasks; dependencies must be written in child artifacts, not implied by tree position.
-Curate `implement.jsonl` and `check.jsonl` as spec/research manifests before start on the platforms that require them. Pi retains this requirement even though main-session execution is the local default.
+Pi: main-session work reads specs directly, leaves unused empty JSONL alone, and after approval starts with `--allow-empty-context`. Before actual implement/check delegation, curate and validate that role's manifest with usable file context. Other platforms curate both manifests before start where required.
 Local checks: declare `meta.planning_mode`, meet the planning section contract, search decisions and register relevant `relatedFiles` per `.trellis/decisions/README.md`. Structural checks do not replace user review.
 [/workflow-state:planning]
 
@@ -255,6 +259,7 @@ Tools: `trellis-implement` / `trellis-research` are sub-agent types, not skills.
 Pi local default: the main session reads `trellis-before-dev`, implements, then uses the `trellis-check` skill. Do not dispatch implement/check agents merely because the platform supports them. Other platforms keep their step-specific routing.
 Pi only: delegate independent useful work when permissions allow. For all platforms, an implement/check sub-agent works directly without spawning another implement/check agent.
 Pi only: reuse the approved scope and plan; unrelated questions do not change this task. A material scope/risk change requires confirmation before expanded work.
+Pi only: recover the persisted planning layout; do not recreate optional documents or curate unused JSONL. Main-session work reads specs directly. Before actual implement/check delegation, prepare and validate that role's usable file context per 1.3; an empty-inline start never establishes delegation readiness.
 Pi only: reuse valid evidence for unchanged inputs, scope, commands and environment. Enter Phase 3 only after implementation is complete, current full-scope evidence satisfies the agreed delivery criteria, and no blocking findings or failed required checks remain. Failure evidence is not a pass; report unverified required criteria and remain in Phase 2.
 Pi only: judge spec updates once at the delivery check; Phase 3.3 performs any needed update, Phase 3.4 reuses the conclusion, then commit (with Git authorization) before `/trellis:finish-work`.
 Other platforms: keep the existing main-session implement/check dispatch route and prefer the check agent after code changes; then load `trellis-update-spec`, commit (Phase 3.4), and use `/trellis:finish-work`.
@@ -300,7 +305,7 @@ Code committed. Run `/trellis:finish-work`; if dirty, return to Phase 3.4 first.
 2. Run steps in order inside each Phase; `[required]` steps can't be skipped
 3. Phases can roll back (e.g., Execute reveals a prd defect → return to Plan to fix, then re-enter Execute)
 4. Steps tagged `[once]` are skipped if the output already exists; don't re-run. On Pi, reuse only valid output and approval; re-open when evidence is missing or relevant inputs/scope changed. File presence alone does not prove approval.
-5. Artifact presence informs the next step; missing `design.md` / `implement.md` is valid for lightweight tasks and incomplete planning for complex tasks.
+5. Artifact presence informs the next step. Lightweight may be PRD-only; complex defaults to all three documents. For explicitly compact Pi tasks, require PRD plus the compact design contract, not an absent optional `implement.md`.
 
 ### Active Task Routing
 
@@ -334,7 +339,7 @@ On Pi, first check whether the request belongs to the active task. Answer unrela
 ### Guardrails
 
 - Task creation approval is not implementation approval; implementation waits for `task.py start` after artifact review. Pi's direct path does not create a formal task or bypass a current planning task; it is not enabled on other platforms.
-- PRD-only is valid for lightweight tasks; complex tasks need `design.md` + `implement.md`. Pi still curates both JSONL manifests before start.
+- Keep the selected planning layout complete and reviewed. Pi's inline `--allow-empty-context` bypasses only advance JSONL readiness, not structure validation, approval or acceptance. Real delegation requires usable role context; other platforms retain their material/context requirements.
 - Planning must be persisted to task artifacts; checks must run before reporting completion. On Pi, reuse valid checks within the permitted verification scope, but advance only after implementation and the agreed delivery criteria are satisfied. Report unexecuted checks and unresolved failures rather than counting them as passes.
 
 ### Loading Step Detail
@@ -381,7 +386,7 @@ The brainstorm skill will guide you to:
 - On Pi, update affected artifacts when conclusions change requirements, constraints or acceptance criteria, rather than after every reply. Other platforms update `prd.md` immediately after each user answer.
 - Split large scopes into a parent task plus child tasks when the deliverables can be verified independently
 - Keep `prd.md` focused on requirements and acceptance criteria
-- For complex tasks, produce `design.md` and `implement.md` before implementation starts
+- For complex tasks, produce `design.md` and `implement.md` before implementation; Pi may instead explicitly select the compact PRD + design contract above when a separate execution plan is unnecessary.
 - Declare `meta.planning_mode`; follow the local structure contract above for the required documents and exact headings.
 - Search [cross-task decisions](./decisions/README.md), inspect relevant successor chains, and register used/created decision paths in `relatedFiles` without duplicating their full reasoning.
 
@@ -433,7 +438,11 @@ Brainstorm and research can interleave freely — pause to research a technical 
 
 [Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, Oh My Pi, ZCode, Snow, Reasonix, Trae, Grok, Kimi Code]
 
-Curate `implement.jsonl` and `check.jsonl` as the spec/research context for Phase 2. Pi retains these manifests for main-session loading and optional delegation; other platforms use their existing injection paths. These files were seeded on `task create` with a single self-describing `_example` line; fill in real entries.
+**Pi:** main-session work reads specs and task documents directly; this step is required only when actual delegation is selected. Curate only the selected implement/check role's manifest then. Current task creation seeds empty files: leave unused ones alone; retain useful existing manifests. Remove obsolete `_example` scaffold rows when curating, because explicit validation treats them as errors. Do not delete malformed manifests to evade diagnostics.
+
+**Other platforms:** curate `implement.jsonl` and `check.jsonl` as the spec/research context for Phase 2 using the existing injection path. These files were seeded on `task create` with a single self-describing `_example` line; fill in real entries.
+
+The format and reference guidance below applies whenever a manifest is being curated.
 
 **Location**: `{TASK_DIR}/implement.jsonl` and `{TASK_DIR}/check.jsonl` (already exist).
 
@@ -451,7 +460,7 @@ Curate `implement.jsonl` and `check.jsonl` as the spec/research context for Phas
 - `implement.jsonl` → specs + research the implement sub-agent needs to write code correctly
 - `check.jsonl` → specs for the check sub-agent (quality guidelines, check conventions, same research if needed)
 
-These manifests do not replace `implement.md`. `implement.md` is the human-readable execution plan for a complex task; jsonl files only list context files to inject or load.
+These manifests do not replace the human-readable execution plan: `implement.md` for standard complex tasks, or the Ordered Steps / Validation sections of an explicitly compact Pi `design.md`.
 
 **How to discover relevant specs**:
 
@@ -470,11 +479,9 @@ python3 ./.trellis/scripts/task.py add-context "$TASK_DIR" implement "<path>" "<
 python3 ./.trellis/scripts/task.py add-context "$TASK_DIR" check "<path>" "<reason>"
 ```
 
-Delete the seed `_example` line once real entries exist (optional — it's skipped automatically by consumers).
+**Other platforms (unchanged):** delete the seed `_example` line once real entries exist (optional — it's skipped automatically by consumers). Both manifests must contain at least one real entry before `task.py start`; skip this step only when both already have curated entries.
 
-Ready gate: both `implement.jsonl` and `check.jsonl` must contain at least one real `{"file": "...", "reason": "..."}` entry before `task.py start`. The seed `_example` row alone is not ready.
-
-Skip this step only when both files already have real curated entries.
+**Pi delegation readiness:** run `task.py validate <task-dir>` and require usable file references in the selected role's manifest; the unused role need not be nonempty. The repository `trellis_subagent` tool validates and materializes that role's context before any child in single/parallel/chain mode, returning an error rather than spawning with missing, broken, scaffold-only or unusable context. This does not grant delegation permission or authorize routine review agents. For native/community tools, the parent enforces the same prerequisite and Active task prefix; this extension does not intercept those tools.
 
 [/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, Oh My Pi, ZCode, Snow, Reasonix, Trae, Grok, Kimi Code]
 
@@ -492,7 +499,15 @@ After artifact review and explicit implementation approval, flip the task status
 python3 ./.trellis/scripts/task.py start <task-dir>
 ```
 
-For lightweight tasks, `prd.md` can be enough. For complex tasks, `prd.md`, `design.md`, and `implement.md` must exist and be reviewed before start. Platforms requiring JSONL, including this Pi pilot, must curate both `implement.jsonl` and `check.jsonl` before start. Main-session execution does not waive that requirement. Runtime tolerance of missing or seed-only manifests is not planning readiness.
+Lightweight tasks may be PRD-only. Complex tasks default to all three reviewed documents; explicitly compact Pi tasks require PRD and compact design, and keep/check any existing optional implementation document.
+
+On Pi, approved main-session work uses the existing context-readiness exception, without preparing unused manifests:
+
+```bash
+python3 ./.trellis/scripts/task.py start <task-dir> --allow-empty-context
+```
+
+The flag does not waive required documents, user approval or acceptance checks, and is not delegation readiness. Actual delegation follows 1.3 before dispatch; no task restart is needed just to prepare its manifest. Other platforms requiring JSONL still curate both before start.
 
 After this command succeeds, the breadcrumb auto-switches to `[workflow-state:in_progress]`, and the rest of Phase 2 / 3 follows.
 
@@ -507,11 +522,12 @@ If `task.py start` errors with a session-identity message (no context key from h
 | `task.py start` has been run (status = in_progress) | ✅ |
 | `research/` has artifacts (complex tasks) | recommended |
 | `design.md` exists (complex tasks) | ✅ |
-| `implement.md` exists (complex tasks) | ✅ |
+| `implement.md` exists (standard complex; optional but checked if present for explicit compact Pi tasks) | ✅ |
 
 [Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, Oh My Pi, ZCode, Snow, Reasonix, Trae, Grok, Kimi Code]
 
-| `implement.jsonl` and `check.jsonl` each contain at least one real curated entry (seed row does not count) | ✅ |
+| Other dispatch platforms: both manifests have real curated entries before start | ✅ |
+| Pi: main-session work has no advance JSONL prerequisite; before actual delegation, the selected role's manifest is validated and supplies usable file context | ✅ |
 
 [/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, Oh My Pi, ZCode, Snow, Reasonix, Trae, Grok, Kimi Code]
 
@@ -568,8 +584,8 @@ The platform prelude auto-handles the context load requirement:
 
 [Pi]
 
-1. Read the curated `implement.jsonl` references and reviewed task artifacts; load `trellis-before-dev` for the relevant specs. Reuse unchanged material already available in context.
-2. Implement the approved scope in the main session. Delegate only independent useful work when permissions allow; an implement/check sub-agent never spawns another.
+1. Read reviewed task documents according to their persisted layout and load relevant specs through `trellis-before-dev`. Reuse useful existing JSONL references when present, but do not create or fill a manifest for main-session work.
+2. Implement in the main session. Delegate independent useful work only when permitted and after the selected role's 1.3 context check; an implement/check sub-agent never spawns another.
 3. Record permitted verification evidence or missing coverage for 2.2. Do not run lint, tests or builds without the applicable authorization, or repeat a valid check merely to finish this step.
 
 [/Pi]

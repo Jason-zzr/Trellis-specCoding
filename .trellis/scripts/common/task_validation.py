@@ -428,9 +428,20 @@ def validate_task_structure(repo_root: Path, task_dir: Path) -> list[ValidationI
             if mode not in ("lightweight", "complex"):
                 issues.append(ValidationIssue(path, None, "Missing or invalid meta.planning_mode.",
                                               "Use task.py set-meta <task> planning_mode lightweight|complex; do not infer it from missing files."))
+            layout = meta.get("planning_layout", "standard") if isinstance(meta, dict) else "standard"
+            if layout not in ("standard", "compact"):
+                issues.append(ValidationIssue(path, None, "Invalid meta.planning_layout.",
+                                              "Use task.py set-meta <task> planning_layout standard|compact; omit it for standard."))
+            if layout == "compact" and mode == "lightweight":
+                issues.append(ValidationIssue(path, None, "Compact layout requires a complex task.",
+                                              "Use standard layout for PRD-only lightweight work; do not change classification to bypass required content."))
+            compact = mode == "complex" and layout == "compact"
             for filename, sections in _PLANNING_SECTIONS.items():
                 document = task_dir / filename
-                if filename == "prd.md" or mode == "complex" or document.exists() or document.is_symlink():
+                if compact and filename == "design.md":
+                    sections = ("Scope", "Contracts", "Ordered Steps", "Validation")
+                required = filename == "prd.md" or (mode == "complex" and (not compact or filename == "design.md"))
+                if required or document.exists() or document.is_symlink():
                     content = _read_text(document, issues)
                     if content is not None:
                         issues.extend(_markdown_sections(content, document, sections))

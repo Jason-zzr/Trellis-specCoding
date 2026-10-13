@@ -1,0 +1,3 @@
+{"file":".trellis/spec/cli/backend/script-conventions.md","reason":"Check validator structure, default-off isolation and direct script mirrors"}
+{"file":".trellis/spec/cli/backend/workflow-state-contract.md","reason":"Check workflow marker structure and preserve task-state contracts"}
+{"file":".trellis/tasks/10-12-workflow-lightweight-v2/research/current-contracts.md","reason":"Review against source-backed scope and distinguish static evidence from runtime claims"}

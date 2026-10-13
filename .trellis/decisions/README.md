@@ -70,7 +70,7 @@ Source lookup matches the exact directory name in `tasks/<name>` and `tasks/arch
 
 ## Structural Checks and Limits
 
-This repository enables `task_structure_validation: true` in `.trellis/config.yaml`. See [workflow.md](../workflow.md) for task classification and required planning sections. Existing and new unarchived tasks follow the same rules at their next start/archive; do not bulk-rewrite historical documents.
+This repository enables `task_structure_validation: true` in `.trellis/config.yaml`. See [workflow.md](../workflow.md) for classification and planning sections. Complex tasks default to the original three-document contract; explicit `meta.planning_layout: compact` selects PRD plus design (Scope, Contracts, Ordered Steps, Validation), retaining full checks for any existing optional `implement.md`. Lightweight remains PRD-only; unknown layouts and lightweight/compact are errors. Neither missing files nor a Pi session selects compact implicitly. Existing/new unarchived tasks follow their declared layout at next start/archive; do not bulk-rewrite history. This changes planning materials, not decision lifecycles or reference checks.
 
 `task.py start` and `task.py archive` reject structural errors before mutating task, session, parent/child, directory or Git state. `task.py validate` reports these errors together with the existing JSONL checks. Existing context/branch skip options do not bypass structure checks. Creating/editing tasks, setting metadata and `finish` remain available to repair materials. When invoking scripts, use `python` on Windows and `python3` on macOS/Linux.
 

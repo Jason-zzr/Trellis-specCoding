@@ -25,9 +25,9 @@ Shows the Phase Index (Plan / Execute / Finish) with routing + skill mapping. Re
 For requests belonging to the active task, route by status, required artifacts and recoverable approval/evidence. This command itself is not approval, but it does not invalidate approval already given for the same scope/design. Without an active task, apply Request Triage rather than automatically creating one.
 
 - `status=planning` + no `prd.md` → **1.1** (load `trellis-brainstorm`)
-- `status=planning` + `prd.md` only → decide whether the task is lightweight or complex. Lightweight can move to **1.4** review; complex returns to **1.1** to add `design.md` + `implement.md`.
-- `status=planning` + required artifacts complete + required jsonl not curated (including Pi; seed-only is not ready) → **1.3**
-- `status=planning` + required artifacts/context ready → **1.4**: reuse an existing approval for unchanged scope/design; request review only if approval is missing or material changes require it, then run `task.py start`.
+- `status=planning` + `prd.md` only → recover `meta.planning_mode` and `meta.planning_layout` (omitted means standard). Lightweight can move to **1.4** review; complex returns to **1.1** for the selected layout's missing sections/documents.
+- `status=planning` + required artifacts complete → **1.4**: reuse unchanged approval or request missing review. For main-session work, start with `--allow-empty-context`; empty unused JSONL is not a blocker or a reason to recreate materials.
+- Actual implement/check delegation selected → **1.3** before dispatch: curate and validate the selected role's manifest, including usable file context. Do not fill the other role solely to continue. Existing malformed manifests remain validation errors.
 - `status=in_progress` + implementation incomplete (not started or partially done) → **2.1**; existing checks do not establish completion of the remaining work.
 - `status=in_progress` + implementation done, verification evidence missing/stale/partial → **2.2**; supplement only the affected authorized checks.
 - `status=in_progress` + unresolved blocking findings or failed required checks → remain in **Phase 2**: fix within scope via **2.1**, then re-check the affected scope via **2.2**, or report the blocker. Valid failure evidence remains a failure, not permission to advance.
@@ -37,7 +37,7 @@ For requests belonging to the active task, route by status, required artifacts a
 Phase rules (full detail in `.trellis/workflow.md`):
 
 1. Run steps **in order** within a phase — `[required]` steps must not be skipped
-2. `[once]` steps reuse valid outputs and approval for unchanged scope/inputs. File presence alone proves neither approval nor verification; lightweight tasks may be PRD-only, complex tasks need all three documents.
+2. `[once]` steps reuse valid outputs and approval for unchanged scope/inputs. File presence proves neither approval nor verification. Lightweight may be PRD-only; standard complex requires three documents; explicit compact complex requires PRD + design with Scope, Contracts, Ordered Steps, Validation. Preserve/check an existing optional `implement.md`, but do not recreate an absent one.
 3. You may go back to an earlier phase if discoveries require it
 
 ## Step 4: Load the Specific Step

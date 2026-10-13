@@ -2863,7 +2863,7 @@ Diagnostics are sorted by path, line, severity and message; string rendering inc
 ### 3. Contracts
 
 - `.trellis/config.yaml`: only an explicit top-level `task_structure_validation: true` scalar enables checks. A missing file/setting or explicit `false` disables them silently without scanning planning/decision materials. Broken symlinks, unreadable files and invalid/duplicate declarations of this setting remain errors. Only unquoted `true`/`false` are supported. This validator does not interpret flow documents or merges, or reject unrelated YAML entries; their handling remains with the existing configuration reader.
-- `task.json` is a readable JSON object; `meta.planning_mode` is explicitly `lightweight` or `complex`. `relatedFiles`, when present, is a string array. Neither missing design files nor old creation dates imply a lightweight exemption.
+- `task.json` is a readable JSON object; `meta.planning_mode` is explicitly `lightweight` or `complex`. `meta.planning_layout` omitted/`standard` preserves the original three-document complex contract. Only explicit `complex` + `compact` requires PRD plus design sections `Scope`, `Contracts`, `Ordered Steps`, `Validation`; optional `implement.md` still uses all its standard sections when present. Unknown layouts and lightweight/compact are errors, diagnosed only inside enabled validation. `relatedFiles`, when present, is a string array. Missing files, platform/session environment and task age never select a lighter layout.
 - Exact planning heading and decision schema contracts live in [workflow.md](../../../workflow.md) and [decisions/README.md](../../../decisions/README.md). Sections must be unique and nonempty outside headings/comments/fence markers; fenced pseudo-headings do not define sections.
 - Decision filename stems are IDs. Strict JSON metadata carries only `status`, `source_task`, `reconsiders`. Register roots in `relatedFiles`; check the connected predecessor/successor set, not just the original records. Unrelated metadata failures warn about unknown associations. No decision roots means no decision scan.
 - Resolve source task directory names exactly across active/archive locations, check containment and JSON identity, and do not recursively validate historical planning documents. Resolve decision file containment against the decisions directory's real location, preserving a shared `.trellis` symlink.
@@ -2880,16 +2880,17 @@ Diagnostics are sorted by path, line, severity and message; string rendering inc
 | `cmd_archive` error | Return 1 after target collision checks but before status, relationship, session, directory or index mutation; missing/broken JSON must not reach the old tolerant archive branch |
 | `cmd_validate` error | Combine with JSONL error count and return 1; retain existing branch warnings |
 | Context/branch skip options | Affect only their original checks, never structure validation |
+| Pi main-session / real delegation | `start --allow-empty-context` avoids advance manifests. Before any child in single/parallel/chain mode, the repository Pi tool calls `validate --allow-empty-context` to check task structure and every existing JSONL entry, then requires usable file context for the selected role. The option suppresses only zero-entry errors; default `validate` stays strict. The unused role may be empty. SessionStart stays tolerant; unmapped roles and native/community dispatch are outside this role check. |
 
 ### 5. Good / Base / Bad Cases
 
-- Good: a complex task declares its mode and provides all three complete planning documents; registered decisions include valid reconsideration links and exact active or archived sources.
+- Good: a standard complex task retains three complete documents; an explicitly compact complex task supplies PRD plus its four required design sections, without discarding an existing optional implementation plan. Registered decisions retain valid reconsideration links and exact active/archive sources.
 - Base: a lightweight task has only a complete PRD and no decision roots. Optional design/implementation documents, if present, must still satisfy their heading contracts.
 - Bad: a new accepted reconsideration is valid individually but conflicts with another accepted direct successor. Checking only the registered old record misses this conflict.
 
 ### 6. Verification Boundary
 
-Verification results and user-authorized runtime checks are recorded in the task's `implement.md`. Static checks alone do not prove runtime start/archive behavior; neither static checks nor passing tests establish semantic decision quality, task classification quality or user approval. No test assets or CI definitions are added or modified by this feature.
+Record evidence in the task's selected execution section/file (`implement.md`, or compact design's Validation). Static checks do not prove runtime start/archive or delegation behavior; checks do not establish semantic decision quality, classification or user approval. No test assets or CI definitions are added or modified by this feature.
 
 ### 7. Wrong vs Correct
 

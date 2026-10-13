@@ -191,7 +191,12 @@ def cmd_validate(args: argparse.Namespace) -> int:
     total_errors = sum(issue.severity == "error" for issue in structure_issues)
     for jsonl_name in ["implement.jsonl", "check.jsonl"]:
         jsonl_file = target_dir / jsonl_name
-        errors = _validate_jsonl(jsonl_file, repo_root, target_dir)
+        errors = _validate_jsonl(
+            jsonl_file,
+            repo_root,
+            target_dir,
+            allow_empty_context=getattr(args, "allow_empty_context", False),
+        )
         total_errors += errors
 
     print()
@@ -272,13 +277,22 @@ def _resolve_context_entry_path(
     return resolved_path
 
 
-def _validate_jsonl(jsonl_file: Path, repo_root: Path, task_dir: Path | None = None) -> int:
+def _validate_jsonl(
+    jsonl_file: Path,
+    repo_root: Path,
+    task_dir: Path | None = None,
+    *,
+    allow_empty_context: bool = False,
+) -> int:
     """Validate a single JSONL file.
 
     ``{"_example": ...}`` placeholder rows written by older Trellis versions
     are hard errors: PR preflight rejects them as unresolved scaffolding, so
     accepting them here would pass locally and fail later. Other rows without
     a ``file`` field are skipped silently, matching what consumers do.
+
+    ``allow_empty_context`` skips only zero-entry readiness, not row errors.
+    Delegation callers must still require usable context for the selected role.
 
     Beyond hard errors (missing file/dir, invalid JSON), this also prints
     non-blocking hygiene warnings (never counted in ``errors``, never change
@@ -390,7 +404,7 @@ def _validate_jsonl(jsonl_file: Path, repo_root: Path, task_dir: Path | None = N
                 )
                 print(f"  {colored(warning_message, Colors.YELLOW)}")
 
-    if errors == 0 and real_entries == 0:
+    if errors == 0 and real_entries == 0 and not allow_empty_context:
         # Seed-only / empty manifest: sub-agents dispatched for this task
         # would run with zero spec context (#573). Silent-green here is how
         # more than half the tasks in the report ended up uncurated.
